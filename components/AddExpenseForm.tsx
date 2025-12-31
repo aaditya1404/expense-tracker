@@ -3,6 +3,19 @@ import React from 'react'
 
 const AddExpenseForm = () => {
 
+    const categories = [
+        "Category",
+        "Self Care",
+        "Travel",
+        "Room Rent",
+        "Buying Techs",
+        "Food",
+        "Clothing",
+        "Trips",
+        "Parties",
+        "Miscellaneous"
+    ]
+
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
@@ -35,11 +48,20 @@ const AddExpenseForm = () => {
     }
 
     return (
-        <div>
-            <form className='w-full flex flex-col' onSubmit={(e) => handleSubmit(e)}>
-                <input type="text" placeholder='Enter the Expense Description' name='description' />
-                <select name="category">
-                    <option value="">Category</option>
+        <div className='w-full h-[40vh] flex items-center justify-center p-4'>
+            <form
+                className='w-full flex flex-col rounded-sm border border-dashed border-black/10 bg-white p-2'
+                onSubmit={(e) => handleSubmit(e)}>
+                <h1 className='mb-4 text-center text-xl font-semibold tracking-tighter p-2'>Add an Expense</h1>
+                <textarea
+                    name="description"
+                    placeholder='Enter the description'
+                    className='outline-none resize-none border border-black/10 rounded-sm mb-4 p-2'></textarea>
+                <select
+                    name="category"
+                    className='border border-black/10 rounded-sm outline-none mb-4 p-2'
+                >
+                    {/* <option value="">Category</option>
                     <option value="Self Care">Self Care</option>
                     <option value="Travel">Travel</option>
                     <option value="Room">Room Rent</option>
@@ -48,10 +70,31 @@ const AddExpenseForm = () => {
                     <option value="Clothing">Clothing</option>
                     <option value="Trips">Trips</option>
                     <option value="Parties">Parties</option>
-                    <option value="Miscellaneous">Miscellaneous</option>
+                    <option value="Miscellaneous">Miscellaneous</option> */}
+                    {categories.map((category) => (
+                        (
+                            <option
+                                key={category}
+                                value={`${category}`}
+                                className='rounded-sm p-2'
+                            >
+                                {category}
+                            </option>
+                        )
+                    ))}
                 </select>
-                <input type="text" placeholder='Enter the money spent' name='value' />
-                <button type='submit'>Add Expense</button>
+                <input
+                    type="text"
+                    placeholder='Enter the money spent'
+                    name='value'
+                    className='border border-black/10 rounded-sm outline-none mb-4 p-2'
+                />
+                <button
+                    type='submit'
+                    className='w-full bg-purple-600 text-white rounded-sm p-2'
+                >
+                    Add Expense
+                </button>
             </form>
         </div>
     )

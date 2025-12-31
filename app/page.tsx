@@ -6,7 +6,6 @@ export default function Home() {
     <div>
       <TotalExpense />
       <AddExpenseForm />
-      Home Page
     </div>
   );
 }

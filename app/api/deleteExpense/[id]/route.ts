@@ -1,10 +1,10 @@
 import dbConnect from "@/libs/dbConnect";
 import ExpenseModel from "@/models/expenseSchema";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
-    req: Request,
-    { params }: { params: { id: string } }
+    req: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         await dbConnect();

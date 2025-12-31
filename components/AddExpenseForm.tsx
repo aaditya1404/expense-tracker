@@ -1,5 +1,5 @@
 "use client";
-import React from 'react'
+import React, { useState } from 'react'
 
 const AddExpenseForm = () => {
 
@@ -14,7 +14,9 @@ const AddExpenseForm = () => {
         "Trips",
         "Parties",
         "Miscellaneous"
-    ]
+    ];
+
+    const [loading, setLoading] = useState(false);
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -28,23 +30,31 @@ const AddExpenseForm = () => {
             value: formData.get("value"),
         }
 
-        const response = await fetch("/api/addExpense", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
+        try {
+            setLoading(true);
+            const response = await fetch("/api/addExpense", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
 
-        const data = await response.json();
+            const data = await response.json();
 
-        if (data.success !== true) {
+            if (data.success !== true) {
+                alert("Error adding expense");
+                return;
+            }
+
+            alert("Expense added successfully");
+            form.reset();
+        } catch (error) {
+            console.log("Error adding expense", error);
             alert("Error adding expense");
-            return;
+        } finally {
+            setLoading(false);
         }
-
-        alert("Expense added successfully");
-        form.reset();
     }
 
     return (
@@ -93,7 +103,7 @@ const AddExpenseForm = () => {
                     type='submit'
                     className='w-full bg-purple-600 text-white rounded-sm p-2'
                 >
-                    Add Expense
+                    {loading ? <span>Loading....</span> : <span>Add Expense</span>}
                 </button>
             </form>
         </div>

@@ -71,16 +71,6 @@ const AddExpenseForm = () => {
                     name="category"
                     className='border border-black/10 rounded-sm outline-none mb-4 p-2'
                 >
-                    {/* <option value="">Category</option>
-                    <option value="Self Care">Self Care</option>
-                    <option value="Travel">Travel</option>
-                    <option value="Room">Room Rent</option>
-                    <option value="Buying Techs">Buying Techs</option>
-                    <option value="Food">Food</option>
-                    <option value="Clothing">Clothing</option>
-                    <option value="Trips">Trips</option>
-                    <option value="Parties">Parties</option>
-                    <option value="Miscellaneous">Miscellaneous</option> */}
                     {categories.map((category) => (
                         (
                             <option

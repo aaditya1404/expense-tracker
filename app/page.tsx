@@ -18,10 +18,9 @@ export default function Home() {
 
   return (
     <div>
-      {/* ✅ Total Expense */}
+
       <TotalExpense expenses={expenses} />
 
-      {/* ✅ Add Expense Form */}
       <AddExpenseForm />
     </div>
   );

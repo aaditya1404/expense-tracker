@@ -29,7 +29,7 @@ const TotalExpense = ({ expenses }: Props) => {
   }, [expenses]);
 
   return (
-    <div className="flex items-center justify-between mx-4 py-2 px-4 mb-6 bg-white border border-dashed border-black/10 rounded-md">
+    <div className="flex items-center justify-between mx-4 py-2 px-4 mb-6 mt-4 bg-white border border-dashed border-black/10 rounded-md">
       <p className="text-sm text-gray-500">
         Total Expense (This Month)
       </p>

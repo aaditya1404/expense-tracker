@@ -7,23 +7,52 @@ export default function Home() {
   const [todayTotal, setTodayTotal] = useState<number>(0);
   const [loading, setLoading] = useState(false);
 
+  function toISTDate(dateString: string) {
+    return new Date(
+      new Date(dateString).toLocaleString("en-US", {
+        timeZone: "Asia/Kolkata",
+      })
+    );
+  }
+
   const fetchTotals = async () => {
     try {
-      const [monthlyRes, todayRes] = await Promise.all([
-        fetch("/api/getMonthlyExpense", { cache: "no-store" }),
-        fetch("/api/getTodayExpense"),
-      ]);
+      const res = await fetch("/api/getCurrentMonthExpenses", {
+        cache: "no-store",
+      });
+      const data = await res.json();
 
-      const monthlyData = await monthlyRes.json();
-      const todayData = await todayRes.json();
+      if (!data.success) return;
 
-      if (monthlyData.success) {
-        setTotal(monthlyData.total);
+      const expenses = data.expenses;
+
+      const istNow = toISTDate(new Date().toISOString());
+      const todayY = istNow.getFullYear();
+      const todayM = istNow.getMonth();
+      const todayD = istNow.getDate();
+
+      let todaySum = 0;
+      let monthSum = 0;
+
+      for (const exp of expenses) {
+        const istDate = toISTDate(exp.createdAt);
+        const amount = Number(exp.value) || 0;
+
+        // monthly
+        monthSum += amount;
+
+        // today
+        if (
+          istDate.getFullYear() === todayY &&
+          istDate.getMonth() === todayM &&
+          istDate.getDate() === todayD
+        ) {
+          todaySum += amount;
+        }
       }
 
-      if (todayData.success) {
-        setTodayTotal(todayData.total);
-      }
+      setTodayTotal(todaySum);
+      setTotal(monthSum);
     } catch (error) {
       console.error("Failed to fetch totals", error);
     }

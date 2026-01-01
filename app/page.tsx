@@ -125,6 +125,8 @@ export default function Home() {
       await fetchTotals();
 
       alert("Expense added successfully");
+      setValueInput("");
+      setComputedValue(0);
       form.reset();
     } catch (error) {
       console.log("Error adding expense", error);

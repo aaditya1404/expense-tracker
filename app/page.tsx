@@ -4,24 +4,35 @@ import React, { useEffect, useState } from "react";
 export default function Home() {
 
   const [total, setTotal] = useState<number>(0);
+  const [todayTotal, setTodayTotal] = useState<number>(0);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchMonthlyTotal = async () => {
-      try {
-        const res = await fetch("/api/getMonthlyExpense");
-        const data = await res.json();
+  const fetchTotals = async () => {
+    try {
+      const [monthlyRes, todayRes] = await Promise.all([
+        fetch("/api/getMonthlyExpense"),
+        fetch("/api/getTodayExpense"),
+      ]);
 
-        if (data.success) {
-          setTotal(data.total);
-        }
-      } catch (error) {
-        console.error("Failed to fetch monthly total", error);
+      const monthlyData = await monthlyRes.json();
+      const todayData = await todayRes.json();
+
+      if (monthlyData.success) {
+        setTotal(monthlyData.total);
       }
-    };
 
-    fetchMonthlyTotal();
+      if (todayData.success) {
+        setTodayTotal(todayData.total);
+      }
+    } catch (error) {
+      console.error("Failed to fetch totals", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTotals();
   }, []);
+
 
   const categories = [
     "Category",
@@ -65,6 +76,8 @@ export default function Home() {
         return;
       }
 
+      await fetchTotals();
+
       alert("Expense added successfully");
       form.reset();
     } catch (error) {
@@ -78,14 +91,25 @@ export default function Home() {
   return (
     <div>
 
-      {/* Total Monthly Expense */}
-      <div className="flex items-center justify-between mx-4 py-2 px-4 mb-6 mt-4 bg-white border border-dashed border-black/10 rounded-md">
-        <p className="text-sm text-gray-500">
-          Total Expense (This Month)
-        </p>
-        <p className="text-xl font-semibold">
-          ₹{total.toLocaleString("en-IN")}
-        </p>
+      <div className="mx-4 mb-6 mt-4 bg-white border border-dashed border-black/10 rounded-md">
+        {/* Daily Expense */}
+        <div className="flex items-center justify-between mx-4 py-2 px-4">
+          <p className="text-sm text-gray-500">
+            Total Expense (Today)
+          </p>
+          <p className="text-xl font-semibold">
+            ₹{todayTotal.toLocaleString("en-IN")}
+          </p>
+        </div>
+        {/* Total Monthly Expense */}
+        <div className="flex items-center justify-between mx-4 py-2 px-4 border-t border-black/10">
+          <p className="text-sm text-gray-500">
+            Total Expense (This Month)
+          </p>
+          <p className="text-xl font-semibold">
+            ₹{total.toLocaleString("en-IN")}
+          </p>
+        </div>
       </div>
 
       {/* Add an expense form */}

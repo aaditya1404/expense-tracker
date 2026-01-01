@@ -6,6 +6,8 @@ export default function Home() {
   const [total, setTotal] = useState<number>(0);
   const [todayTotal, setTodayTotal] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const [valueInput, setValueInput] = useState("");
+  const [computedValue, setComputedValue] = useState<number>(0);
 
   function toISTDate(dateString: string) {
     return new Date(
@@ -76,8 +78,22 @@ export default function Home() {
     "Miscellaneous"
   ];
 
+  function parseAndSumValues(input: string): number {
+    return input
+      .trim()
+      .split(/\s+/)          // split by one or more spaces
+      .map(v => Number(v))   // convert to number
+      .filter(v => !isNaN(v))
+      .reduce((sum, v) => sum + v, 0);
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (computedValue <= 0) {
+      alert("Please enter valid numbers separated by spaces");
+      return;
+    }
 
     const form = e.currentTarget;
     const formData = new FormData(form);
@@ -85,7 +101,8 @@ export default function Home() {
     const payload = {
       description: formData.get("description"),
       category: formData.get("category"),
-      value: formData.get("value"),
+      // value: formData.get("value"),
+      value: String(computedValue),
     }
 
     try {
@@ -119,8 +136,7 @@ export default function Home() {
 
   return (
     <div>
-
-      <div className="mx-4 mb-6 mt-4 bg-white border border-dashed border-black/10 rounded-md">
+      <div className="mx-4 mt-4 bg-white border border-dashed border-black/10 rounded-md">
         {/* Daily Expense */}
         <div className="flex items-center justify-between mx-4 py-2 px-4">
           <p className="text-sm text-gray-500">
@@ -142,7 +158,7 @@ export default function Home() {
       </div>
 
       {/* Add an expense form */}
-      <div className='w-full h-[40vh] flex items-center justify-center p-4'>
+      <div className='w-full flex items-center justify-center p-4'>
         <form
           className='w-full flex flex-col rounded-sm border border-dashed border-black/10 bg-white p-2'
           onSubmit={(e) => handleSubmit(e)}>
@@ -167,12 +183,28 @@ export default function Home() {
               )
             ))}
           </select>
-          <input
+          {/* <input
             type="text"
             placeholder='Enter the money spent'
             name='value'
             className='border border-black/10 rounded-sm outline-none mb-4 p-2'
+          /> */}
+          <textarea
+            name="value"
+            placeholder="Enter multiple amounts separated by space (e.g. 100 250 75)"
+            className="outline-none resize-none border border-black/10 rounded-sm mb-2 p-2"
+            value={valueInput}
+            onChange={(e) => {
+              const input = e.target.value;
+              setValueInput(input);
+              setComputedValue(parseAndSumValues(input));
+            }}
           />
+
+          <p className="text-md text-gray-800 mb-4">
+            Total Value: <span className="font-semibold">₹{computedValue}</span>
+          </p>
+
           <button
             type='submit'
             className='w-full bg-purple-600 text-white rounded-sm p-2'

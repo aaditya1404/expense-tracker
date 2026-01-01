@@ -10,7 +10,7 @@ export default function Home() {
   const fetchTotals = async () => {
     try {
       const [monthlyRes, todayRes] = await Promise.all([
-        fetch("/api/getMonthlyExpense"),
+        fetch("/api/getMonthlyExpense", { cache: "no-store" }),
         fetch("/api/getTodayExpense"),
       ]);
 

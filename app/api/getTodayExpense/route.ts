@@ -129,6 +129,8 @@
 //     }
 // }
 
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import dbConnect from "@/libs/dbConnect";
 import ExpenseModel from "@/models/expenseSchema";

@@ -1,6 +1,14 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
+interface Expense {
+  description: string,
+  category: string,
+  value: string,
+  createdAt: string,
+  _id: string
+}
+
 export default function Home() {
 
   const [total, setTotal] = useState<number>(0);
@@ -8,6 +16,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [valueInput, setValueInput] = useState("");
   const [computedValue, setComputedValue] = useState<number>(0);
+  const [monthlyExpenses, setMonthlyExpenses] = useState<Expense[]>([]);
 
   function toISTDate(dateString: string) {
     return new Date(
@@ -27,6 +36,7 @@ export default function Home() {
       if (!data.success) return;
 
       const expenses = data.expenses;
+      setMonthlyExpenses(expenses);
 
       const istNow = toISTDate(new Date().toISOString());
       const todayY = istNow.getFullYear();
@@ -87,6 +97,23 @@ export default function Home() {
       .reduce((sum, v) => sum + v, 0);
   }
 
+  function getCategoryWiseTotal(expenses: Expense[]) {
+    const categoryMap: Record<string, number> = {};
+
+    for (const exp of expenses) {
+      const category = exp.category;
+      const amount = Number(exp.value) || 0;
+
+      if (categoryMap[category]) {
+        categoryMap[category] += amount;
+      } else {
+        categoryMap[category] = amount;
+      }
+    }
+
+    return categoryMap;
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -136,12 +163,14 @@ export default function Home() {
     }
   }
 
+  const categoryTotals = getCategoryWiseTotal(monthlyExpenses);
+
   return (
-    <div>
-      <div className="mx-4 mt-4 bg-white border border-dashed border-black/10 rounded-md">
+    <div className="mx-4">
+      <div className=" mt-4 bg-white border border-dashed border-black/10 rounded-md">
         {/* Daily Expense */}
         <div className="flex items-center justify-between mx-4 py-2 px-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-md text-gray-500">
             Total Expense (Today)
           </p>
           <p className="text-xl font-semibold">
@@ -150,7 +179,7 @@ export default function Home() {
         </div>
         {/* Total Monthly Expense */}
         <div className="flex items-center justify-between mx-4 py-2 px-4 border-t border-black/10">
-          <p className="text-sm text-gray-500">
+          <p className="text-md text-gray-500">
             Total Expense (This Month)
           </p>
           <p className="text-xl font-semibold">
@@ -160,41 +189,35 @@ export default function Home() {
       </div>
 
       {/* Add an expense form */}
-      <div className='w-full flex items-center justify-center p-4'>
+      <div className='w-full flex items-center justify-center mt-4'>
         <form
-          className='w-full flex flex-col rounded-sm border border-dashed border-black/10 bg-white p-2'
+          className='w-full flex flex-col rounded-md border border-dashed border-black/10 bg-white p-2'
           onSubmit={(e) => handleSubmit(e)}>
           <h1 className='mb-4 text-center text-xl font-semibold tracking-tighter p-2'>Add an Expense</h1>
           <textarea
             name="description"
             placeholder='Enter the description'
-            className='outline-none resize-none border border-black/10 rounded-sm mb-4 p-2'></textarea>
+            className='outline-none resize-none border border-black/10 rounded-md mb-4 p-2'></textarea>
           <select
             name="category"
-            className='border border-black/10 rounded-sm outline-none mb-4 p-2'
+            className='border border-black/10 rounded-md outline-none mb-4 p-2'
           >
             {categories.map((category) => (
               (
                 <option
                   key={category}
                   value={`${category}`}
-                  className='rounded-sm p-2'
+                  className='rounded-md p-2'
                 >
                   {category}
                 </option>
               )
             ))}
           </select>
-          {/* <input
-            type="text"
-            placeholder='Enter the money spent'
-            name='value'
-            className='border border-black/10 rounded-sm outline-none mb-4 p-2'
-          /> */}
           <textarea
             name="value"
             placeholder="Enter multiple amounts separated by space (e.g. 100 250 75)"
-            className="outline-none resize-none border border-black/10 rounded-sm mb-2 p-2"
+            className="outline-none resize-none border border-black/10 rounded-md mb-2 p-2"
             value={valueInput}
             onChange={(e) => {
               const input = e.target.value;
@@ -209,11 +232,35 @@ export default function Home() {
 
           <button
             type='submit'
-            className='w-full bg-purple-600 text-white rounded-sm p-2'
+            className='w-full bg-purple-600 text-white rounded-md p-2'
           >
             {loading ? <span>Loading....</span> : <span>Add Expense</span>}
           </button>
         </form>
+      </div>
+
+      {/* Monthly Expense Insights */}
+      <div className="bg-white w-full border border-dashed border-black/10 rounded-md mt-4">
+        <p className="mb-4 text-center text-xl font-semibold tracking-tighter p-2">Monthly Payment Insights</p>
+        {Object.keys(categoryTotals).length === 0 ? (
+          <p className="text-center text-gray-500 pb-4">
+            No expenses for this month
+          </p>
+        ) : (
+          <div className="px-4 pb-4">
+            {Object.entries(categoryTotals).map(([category, amount]) => (
+              <div
+                key={category}
+                className="flex justify-between border-b border-black/5 py-2"
+              >
+                <span className="text-gray-600">{category}</span>
+                <span className="font-semibold">
+                  ₹{amount.toLocaleString("en-IN")}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

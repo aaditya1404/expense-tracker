@@ -1,6 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
+const HOME_CACHE_KEY = "expense_home_cache"; // New Line
+
 interface Expense {
   description: string,
   category: string,
@@ -30,6 +32,63 @@ export default function Home() {
       })
     );
   }
+
+  async function fetchAndCache() { // New function
+    try {
+      const [expRes, balRes] = await Promise.all([
+        fetch("/api/getCurrentMonthExpenses", { cache: "no-store" }),
+        fetch("/api/getBalance", { cache: "no-store" })
+      ]);
+
+      const expData = await expRes.json();
+      const balData = await balRes.json();
+
+      if (!expData.success || !balData.success) return;
+
+      const expenses = expData.expenses;
+
+      let todaySum = 0;
+      let monthSum = 0;
+
+      const now = toISTDate(new Date().toISOString());
+
+      expenses.forEach((exp: Expense) => {
+        const amount = Number(exp.value) || 0;
+        monthSum += amount;
+
+        const d = toISTDate(exp.createdAt);
+        if (
+          d.getDate() === now.getDate() &&
+          d.getMonth() === now.getMonth() &&
+          d.getFullYear() === now.getFullYear()
+        ) {
+          todaySum += amount;
+        }
+      });
+
+      const cache = {
+        expenses,
+        total: monthSum,
+        todayTotal: todaySum,
+        balance: balData.amount,
+        lastUpdated: Date.now()
+      };
+
+      localStorage.setItem(HOME_CACHE_KEY, JSON.stringify(cache));
+
+      setMonthlyExpenses(expenses);
+      setTotal(monthSum);
+      setTodayTotal(todaySum);
+      setAvailableBalance(balData.amount);
+
+      if (balData.amount > 0) {
+        setIsEditingBalance(false);
+      }
+    } catch (err) {
+      console.error("Cache fetch failed", err);
+    }
+  }
+
 
   const fetchTotals = async () => {
     try {
@@ -87,10 +146,32 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    fetchTotals();
-    fetchBalance();
+  // useEffect(() => {
+  //   fetchTotals();
+  //   fetchBalance();
+  // }, []);
+
+  useEffect(() => { // Whole new function
+    const cached = localStorage.getItem(HOME_CACHE_KEY);
+
+    if (cached) {
+      const data = JSON.parse(cached);
+
+      setMonthlyExpenses(data.expenses);
+      setTotal(data.total);
+      setTodayTotal(data.todayTotal);
+      setAvailableBalance(data.balance);
+
+      if (data.balance > 0) {
+        setIsEditingBalance(false);
+      }
+
+      return; // ⛔ STOP, no API calls
+    }
+
+    fetchAndCache();
   }, []);
+
 
   const categories = [
     "Category",
@@ -195,8 +276,44 @@ export default function Home() {
         return;
       }
 
-      await fetchTotals();
-      await fetchBalance();
+      // await fetchTotals();
+      // await fetchBalance();
+
+      // New Function start
+      const cached = localStorage.getItem(HOME_CACHE_KEY);
+
+      if (cached) {
+        const data = JSON.parse(cached);
+
+        const newExpense = {
+          ...payload,
+          value: String(computedValue),
+          createdAt: new Date().toISOString()
+        };
+
+        data.expenses.unshift(newExpense);
+        data.total += computedValue;
+        data.balance -= computedValue;
+
+        const now = toISTDate(new Date().toISOString());
+        const d = toISTDate(newExpense.createdAt);
+
+        if (
+          d.getDate() === now.getDate() &&
+          d.getMonth() === now.getMonth()
+        ) {
+          data.todayTotal += computedValue;
+        }
+
+        localStorage.setItem(HOME_CACHE_KEY, JSON.stringify(data));
+
+        // update UI immediately
+        setMonthlyExpenses(data.expenses);
+        setTotal(data.total);
+        setTodayTotal(data.todayTotal);
+        setAvailableBalance(data.balance);
+      }
+      // New function end
 
       alert("Expense added successfully");
       setValueInput("");

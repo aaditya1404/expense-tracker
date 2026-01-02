@@ -69,17 +69,36 @@ const YourExpenses = () => {
 
   const handleDeleteExpense = async (id: string) => {
     try {
+      const expenseToDelete = expenses.find(e => e._id === id);
+      if (!expenseToDelete) return;
+
+      const deletedAmount = Number(expenseToDelete.value) || 0;
+
       const res = await fetch(`/api/deleteExpense/${id}`, {
         method: "DELETE",
       });
 
       const data = await res.json();
+      if (!data.success) return; // New Line
 
-      if (data.success) {
-        setExpenses(prev =>
-          prev.filter(expense => expense._id !== id)
-        );
-      }
+      // if (data.success) {
+      // }
+      setExpenses(prev => // This function should be inside the if
+        prev.filter(expense => expense._id !== id)
+      );
+      const balRes = await fetch("/api/getBalance", { cache: "no-store" });
+      const balData = await balRes.json();
+      if (!balData.success) return;
+
+      const newBalance = balData.amount + deletedAmount;
+
+      // 5️⃣ update balance in DB
+      await fetch("/api/setBalance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: newBalance }),
+      });
+      localStorage.removeItem("expense_home_cache");
     } catch (error) {
       console.error("Delete failed", error);
     }

@@ -33,61 +33,61 @@ export default function Home() {
     );
   }
 
-  async function fetchAndCache() { // New function
-    try {
-      const [expRes, balRes] = await Promise.all([
-        fetch("/api/getCurrentMonthExpenses", { cache: "no-store" }),
-        fetch("/api/getBalance", { cache: "no-store" })
-      ]);
+  // async function fetchAndCache() { // New function
+  //   try {
+  //     const [expRes, balRes] = await Promise.all([
+  //       fetch("/api/getCurrentMonthExpenses", { cache: "no-store" }),
+  //       fetch("/api/getBalance", { cache: "no-store" })
+  //     ]);
 
-      const expData = await expRes.json();
-      const balData = await balRes.json();
+  //     const expData = await expRes.json();
+  //     const balData = await balRes.json();
 
-      if (!expData.success || !balData.success) return;
+  //     if (!expData.success || !balData.success) return;
 
-      const expenses = expData.expenses;
+  //     const expenses = expData.expenses;
 
-      let todaySum = 0;
-      let monthSum = 0;
+  //     let todaySum = 0;
+  //     let monthSum = 0;
 
-      const now = toISTDate(new Date().toISOString());
+  //     const now = toISTDate(new Date().toISOString());
 
-      expenses.forEach((exp: Expense) => {
-        const amount = Number(exp.value) || 0;
-        monthSum += amount;
+  //     expenses.forEach((exp: Expense) => {
+  //       const amount = Number(exp.value) || 0;
+  //       monthSum += amount;
 
-        const d = toISTDate(exp.createdAt);
-        if (
-          d.getDate() === now.getDate() &&
-          d.getMonth() === now.getMonth() &&
-          d.getFullYear() === now.getFullYear()
-        ) {
-          todaySum += amount;
-        }
-      });
+  //       const d = toISTDate(exp.createdAt);
+  //       if (
+  //         d.getDate() === now.getDate() &&
+  //         d.getMonth() === now.getMonth() &&
+  //         d.getFullYear() === now.getFullYear()
+  //       ) {
+  //         todaySum += amount;
+  //       }
+  //     });
 
-      const cache = {
-        expenses,
-        total: monthSum,
-        todayTotal: todaySum,
-        balance: balData.amount,
-        lastUpdated: Date.now()
-      };
+  //     const cache = {
+  //       expenses,
+  //       total: monthSum,
+  //       todayTotal: todaySum,
+  //       balance: balData.amount,
+  //       lastUpdated: Date.now()
+  //     };
 
-      localStorage.setItem(HOME_CACHE_KEY, JSON.stringify(cache));
+  //     localStorage.setItem(HOME_CACHE_KEY, JSON.stringify(cache));
 
-      setMonthlyExpenses(expenses);
-      setTotal(monthSum);
-      setTodayTotal(todaySum);
-      setAvailableBalance(balData.amount);
+  //     setMonthlyExpenses(expenses);
+  //     setTotal(monthSum);
+  //     setTodayTotal(todaySum);
+  //     setAvailableBalance(balData.amount);
 
-      if (balData.amount > 0) {
-        setIsEditingBalance(false);
-      }
-    } catch (err) {
-      console.error("Cache fetch failed", err);
-    }
-  }
+  //     if (balData.amount > 0) {
+  //       setIsEditingBalance(false);
+  //     }
+  //   } catch (err) {
+  //     console.error("Cache fetch failed", err);
+  //   }
+  // }
 
 
   const fetchTotals = async () => {
@@ -146,31 +146,31 @@ export default function Home() {
     }
   };
 
-  // useEffect(() => {
-  //   fetchTotals();
-  //   fetchBalance();
-  // }, []);
-
-  useEffect(() => { // Whole new function
-    const cached = localStorage.getItem(HOME_CACHE_KEY);
-
-    if (cached) {
-      const data = JSON.parse(cached);
-
-      setMonthlyExpenses(data.expenses);
-      setTotal(data.total);
-      setTodayTotal(data.todayTotal);
-      setAvailableBalance(data.balance);
-
-      if (data.balance > 0) {
-        setIsEditingBalance(false);
-      }
-
-      return; // ⛔ STOP, no API calls
-    }
-
-    fetchAndCache();
+  useEffect(() => {
+    fetchTotals();
+    fetchBalance();
   }, []);
+
+  // useEffect(() => { // Whole new function
+  //   const cached = localStorage.getItem(HOME_CACHE_KEY);
+
+  //   if (cached) {
+  //     const data = JSON.parse(cached);
+
+  //     setMonthlyExpenses(data.expenses);
+  //     setTotal(data.total);
+  //     setTodayTotal(data.todayTotal);
+  //     setAvailableBalance(data.balance);
+
+  //     if (data.balance > 0) {
+  //       setIsEditingBalance(false);
+  //     }
+
+  //     return; // ⛔ STOP, no API calls
+  //   }
+
+  //   fetchAndCache();
+  // }, []);
 
 
   const categories = [
@@ -276,43 +276,43 @@ export default function Home() {
         return;
       }
 
-      // await fetchTotals();
-      // await fetchBalance();
+      await fetchTotals();
+      await fetchBalance();
 
       // New Function start
-      const cached = localStorage.getItem(HOME_CACHE_KEY);
+      // const cached = localStorage.getItem(HOME_CACHE_KEY);
 
-      if (cached) {
-        const data = JSON.parse(cached);
+      // if (cached) {
+      //   const data = JSON.parse(cached);
 
-        const newExpense = {
-          ...payload,
-          value: String(computedValue),
-          createdAt: new Date().toISOString()
-        };
+      //   const newExpense = {
+      //     ...payload,
+      //     value: String(computedValue),
+      //     createdAt: new Date().toISOString()
+      //   };
 
-        data.expenses.unshift(newExpense);
-        data.total += computedValue;
-        data.balance -= computedValue;
+      //   data.expenses.unshift(newExpense);
+      //   data.total += computedValue;
+      //   data.balance -= computedValue;
 
-        const now = toISTDate(new Date().toISOString());
-        const d = toISTDate(newExpense.createdAt);
+      //   const now = toISTDate(new Date().toISOString());
+      //   const d = toISTDate(newExpense.createdAt);
 
-        if (
-          d.getDate() === now.getDate() &&
-          d.getMonth() === now.getMonth()
-        ) {
-          data.todayTotal += computedValue;
-        }
+      //   if (
+      //     d.getDate() === now.getDate() &&
+      //     d.getMonth() === now.getMonth()
+      //   ) {
+      //     data.todayTotal += computedValue;
+      //   }
 
-        localStorage.setItem(HOME_CACHE_KEY, JSON.stringify(data));
+      //   localStorage.setItem(HOME_CACHE_KEY, JSON.stringify(data));
 
-        // update UI immediately
-        setMonthlyExpenses(data.expenses);
-        setTotal(data.total);
-        setTodayTotal(data.todayTotal);
-        setAvailableBalance(data.balance);
-      }
+      //   // update UI immediately
+      //   setMonthlyExpenses(data.expenses);
+      //   setTotal(data.total);
+      //   setTodayTotal(data.todayTotal);
+      //   setAvailableBalance(data.balance);
+      // }
       // New function end
 
       alert("Expense added successfully");

@@ -83,9 +83,6 @@ const YourExpenses = () => {
 
       // if (data.success) {
       // }
-      setExpenses(prev => // This function should be inside the if
-        prev.filter(expense => expense._id !== id)
-      );
       const balRes = await fetch("/api/getBalance", { cache: "no-store" });
       const balData = await balRes.json();
       if (!balData.success) return;
@@ -98,6 +95,9 @@ const YourExpenses = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: newBalance }),
       });
+      setExpenses(prev => // This function should be inside the if
+        prev.filter(expense => expense._id !== id)
+      );
       localStorage.removeItem("expense_home_cache");
     } catch (error) {
       console.error("Delete failed", error);

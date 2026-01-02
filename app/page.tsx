@@ -17,6 +17,11 @@ export default function Home() {
   const [valueInput, setValueInput] = useState("");
   const [computedValue, setComputedValue] = useState<number>(0);
   const [monthlyExpenses, setMonthlyExpenses] = useState<Expense[]>([]);
+  const [availableBalance, setAvailableBalance] = useState<number>(0);
+  const [balanceInput, setBalanceInput] = useState("");
+  const [isEditingBalance, setIsEditingBalance] = useState(true);
+
+
 
   function toISTDate(dateString: string) {
     return new Date(
@@ -70,10 +75,22 @@ export default function Home() {
     }
   };
 
+  const fetchBalance = async () => {
+    const res = await fetch("/api/getBalance", { cache: "no-store" });
+    const data = await res.json();
+
+    if (data.success) {
+      setAvailableBalance(data.amount);
+      if (data.amount > 0) {
+        setIsEditingBalance(false);
+      }
+    }
+  };
+
   useEffect(() => {
     fetchTotals();
+    fetchBalance();
   }, []);
-
 
   const categories = [
     "Category",
@@ -113,6 +130,35 @@ export default function Home() {
 
     return categoryMap;
   }
+  async function handleBalanceSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const amount = Number(balanceInput);
+    if (amount <= 0) {
+      alert("Enter valid balance");
+      return;
+    }
+
+    const res = await fetch("/api/setBalance", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setAvailableBalance(data.amount);
+      setBalanceInput("");
+      setIsEditingBalance(false);
+    }
+  }
+
+  function handleEditBalance() {
+    setBalanceInput(String(availableBalance));
+    setIsEditingBalance(true);
+  }
+
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -150,6 +196,7 @@ export default function Home() {
       }
 
       await fetchTotals();
+      await fetchBalance();
 
       alert("Expense added successfully");
       setValueInput("");
@@ -167,9 +214,10 @@ export default function Home() {
 
   return (
     <div className="mx-4">
-      <div className=" mt-4 bg-white border border-dashed border-black/10 rounded-md">
+      {/* Daily and Monthly expense */}
+      <div className="mb-4 mt-4 bg-white border border-dashed border-black/10 rounded-md">
         {/* Daily Expense */}
-        <div className="flex items-center justify-between mx-4 py-2 px-4">
+        <div className="flex items-center justify-between mx-4 py-2">
           <p className="text-md text-gray-500">
             Total Expense (Today)
           </p>
@@ -178,7 +226,7 @@ export default function Home() {
           </p>
         </div>
         {/* Total Monthly Expense */}
-        <div className="flex items-center justify-between mx-4 py-2 px-4 border-t border-black/10">
+        <div className="flex items-center justify-between mx-4 py-2 border-t border-black/10">
           <p className="text-md text-gray-500">
             Total Expense (This Month)
           </p>
@@ -187,6 +235,50 @@ export default function Home() {
           </p>
         </div>
       </div>
+      {/* Available Balance */}
+      <div className="w-full mb-4">
+        <div className="w-full flex items-center justify-between rounded-md border border-dashed border-black/10 bg-white p-3">
+
+          {isEditingBalance ? (
+            <form
+              onSubmit={handleBalanceSubmit}
+              className="flex w-full gap-2"
+            >
+              <input
+                type="number"
+                placeholder="Enter available balance"
+                value={balanceInput}
+                onChange={(e) => setBalanceInput(e.target.value)}
+                className="flex-1 outline-none border border-black/10 rounded-md p-2"
+              />
+              <button
+                type="submit"
+                className="bg-purple-600 text-white rounded-md px-4"
+              >
+                Submit
+              </button>
+            </form>
+          ) : (
+            <>
+              <p className="text-md font-medium text-gray-700">
+                Available Balance ={" "}
+                <span className="font-semibold text-green-600 text-xl">
+                  ₹{availableBalance.toLocaleString("en-IN")}
+                </span>
+              </p>
+
+              <button
+                onClick={handleEditBalance}
+                className="bg-gray-200 text-gray-700 rounded-md px-4 py-1"
+              >
+                Edit
+              </button>
+            </>
+          )}
+
+        </div>
+      </div>
+
 
       {/* Add an expense form */}
       <div className='w-full flex items-center justify-center mt-4'>

@@ -240,7 +240,7 @@ export default function Home() {
       </div>
 
       {/* Monthly Expense Insights */}
-      <div className="bg-white w-full border border-dashed border-black/10 rounded-md mt-4">
+      <div className="bg-white w-full border border-dashed border-black/10 rounded-md mt-4 mb-4">
         <p className="mb-4 text-center text-xl font-semibold tracking-tighter p-2">Monthly Payment Insights</p>
         {Object.keys(categoryTotals).length === 0 ? (
           <p className="text-center text-gray-500 pb-4">

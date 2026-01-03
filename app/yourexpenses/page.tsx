@@ -1,7 +1,14 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { Expense } from "@/components/AllExpenses";
 import ExpenseCard from "@/components/ExpenseCard";
+
+interface Expense {
+  description: string,
+  category: string,
+  value: string,
+  createdAt: string,
+  _id: string
+}
 
 const LIMIT = 10;
 

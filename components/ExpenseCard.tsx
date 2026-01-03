@@ -1,6 +1,13 @@
 "use client";
 import React, { useState } from "react";
-import { Expense } from "./AllExpenses";
+
+interface Expense {
+  description: string,
+  category: string,
+  value: string,
+  createdAt: string,
+  _id: string
+}
 
 interface ExpenseCardProps {
     expense: Expense;
